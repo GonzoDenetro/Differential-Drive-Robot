@@ -27,6 +27,11 @@ venv/
 .venv/
 env/
 ENV/
+bin/
+inclue/
+lib/
+lib64/
+*.cfg
 
 # =========================
 # Pygame / assets temporales

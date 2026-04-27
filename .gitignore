@@ -1,0 +1,57 @@
+# =========================
+# ROS 2
+# =========================
+build/
+install/
+log/
+
+# Colcon / ament
+*.log
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyc.*
+
+# Distribución / packaging
+dist/
+build/
+*.egg-info/
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+
+# =========================
+# Pygame / assets temporales
+# =========================
+*.wav
+*.mp3
+# (quita estas líneas si SÍ quieres versionar audio)
+
+# =========================
+# IDEs / editores
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Sistema (Linux / WSL)
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Otros
+# =========================
+*.bak
+*.tmp
+*.cache

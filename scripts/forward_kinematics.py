@@ -19,6 +19,8 @@ pygame.display.set_caption('Differential Robot - Forward Kinematics')
 
 #Main function
 def main():
+    dt = 0.01 #The simulation moves in steps of 0.01 s (100Hz) 
+    
     #Robot Configuration
     robot_x = 10
     robot_y = 10
@@ -27,6 +29,8 @@ def main():
     robot = pygame.Rect(robot_x, robot_y, robot_width, robot_height)
     
     #Robot Wheel Velocities
+    v_left = []
+    v_right = []
     
     running = True
     
@@ -36,7 +40,10 @@ def main():
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
-                robot.x += 3
+                pass
+            
+            for i in range(10):
+                robot.x = robot.x + 5 *dt
             
             if event.type == QUIT:
                 pygame.quit()

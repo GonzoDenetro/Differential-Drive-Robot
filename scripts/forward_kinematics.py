@@ -19,7 +19,7 @@ pygame.display.set_caption('Differential Robot - Forward Kinematics')
 
 
 
-def forward_kinematics(angular_vel_left, angular_vel_right):
+def forward_kinematics(phi_l, phi_r):
     radius = 0.05 #meters
     L = 0.2
     dt = 0.01
@@ -27,18 +27,18 @@ def forward_kinematics(angular_vel_left, angular_vel_right):
     x = 0
     y = 0
     
-    for phi_l, phi_r in zip(angular_vel_left, angular_vel_right):
-        vel = ((phi_l*radius)+(phi_r*radius)) / 2
-        omega = (radius*(-phi_l + phi_r)) / L
-        theta += omega * dt  
-        x_dot = vel * math.cos(theta)
-        y_dot = vel * math.sin(theta)
+    vel = ((phi_l*radius)+(phi_r*radius)) / 2
+    omega = (radius*(-phi_l + phi_r)) / L
+    theta += omega * dt  
+    x_dot = vel * math.cos(theta)
+    y_dot = vel * math.sin(theta)
         
-        print(f'Linear Velocity: {vel}')
-        print(f'Omega: {omega}')
-        #Integrate position 
-        x += x_dot * dt
-        y += y_dot * dt
+    print(f'Linear Velocity: {vel}')
+    print(f'Omega: {omega}')
+    #Integrate position 
+    x += x_dot * dt
+    y += y_dot * dt
+    return x, y
         
 
 
@@ -61,9 +61,6 @@ def main():
     running = False
     
     
-    angular_vel_left = [31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4]
-    angular_vel_right = [31.4, 31.4, 31.4, 31.4, -31.4, 31.4, 31.4, 31.4, 31.4]
-    forward_kinematics(angular_vel_left, angular_vel_right)
     
     while running:
         #Get INputs
@@ -72,7 +69,10 @@ def main():
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
-                pass
+                print('Cuadrado')
+                angular_vel_left = [31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4]
+                angular_vel_right = [31.4, 31.4, 31.4, 31.4, -31.4, 31.4, 31.4, 31.4, 31.4]
+                forward_kinematics(angular_vel_left, angular_vel_right)
             
             
             if event.type == QUIT:

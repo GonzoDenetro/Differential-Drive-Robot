@@ -19,15 +19,12 @@ pygame.display.set_caption('Differential Robot - Forward Kinematics')
 
 
 
-def forward_kinematics(phi_l, phi_r):
+def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
     radius = 0.05 #meters
-    L = 0.2
-    dt = 0.01
-    theta = 0
-    x = 0
-    y = 0
+    L = 0.2 # Robot Length
+
     
-    vel = ((phi_l*radius)+(phi_r*radius)) / 2
+    vel = ((phi_l*radius)+(phi_r*radius)) / 2 # m/s
     omega = (radius*(-phi_l + phi_r)) / L
     theta += omega * dt  
     x_dot = vel * math.cos(theta)
@@ -38,8 +35,16 @@ def forward_kinematics(phi_l, phi_r):
     #Integrate position 
     x += x_dot * dt
     y += y_dot * dt
+    print(f'x: {x}, y: {y}')
     return x, y
         
+
+def udpdate(robot):
+    window.fill((255, 255, 255)) #Erase window
+    pygame.draw.rect(window, (255, 30, 70), robot) #Draw robot
+        
+    pygame.display.update()
+    clock.tick(FPS)
 
 
 #Main function
@@ -53,12 +58,13 @@ def main():
     robot_width = 20
     robot_height = 20
     robot = pygame.Rect(robot_x*PIXELS_PER_METER, robot_y*PIXELS_PER_METER, robot_width, robot_height)
+    theta = 0
     
     #Robot Wheel Velocities
     v_left = []
     v_right = []
     
-    running = False
+    running = True
     
     
     
@@ -70,9 +76,18 @@ def main():
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
                 print('Cuadrado')
-                angular_vel_left = [31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4]
-                angular_vel_right = [31.4, 31.4, 31.4, 31.4, -31.4, 31.4, 31.4, 31.4, 31.4]
-                forward_kinematics(angular_vel_left, angular_vel_right)
+                #angular_vel_left = [31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4]
+                #angular_vel_right = [31.4, 31.4, 31.4, 31.4, -31.4, 31.4, 31.4, 31.4, 31.4]
+                angular_vel_left = [20]
+                angular_vel_right = [31]
+                for phi_left, phi_right in zip(angular_vel_left, angular_vel_right):
+                    current_x = robot.x / PIXELS_PER_METER
+                    current_y = robot.y / PIXELS_PER_METER
+                    x, y = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
+                    robot.x = x * PIXELS_PER_METER
+                    robot.y = y * PIXELS_PER_METER
+                    udpdate(robot)
+                    print('-'*50)
             
             
             if event.type == QUIT:

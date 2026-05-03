@@ -83,12 +83,40 @@ def main():
     
     points = [(robot_pixel_x, robot_pixel_y)]
     
+    #Time for square simulation
+    time_elapsed = 0
+    #time_goal = 2 # 2 seconds
+    
+    
+    #Square trajectory
+    omega = (0.05*(-23.5 + 23.5)) / 0.2
+    forward_time = 2.0
+    turn_time = 0.1213#(math.pi/2) / 15.5
+    index = 0
+    trajectory_vals = [
+        ('forward', forward_time),
+        ('turn',  turn_time),
+        ('forward', forward_time),
+        ('turn',  turn_time),
+        ('forward', forward_time),
+        ('turn',  turn_time),
+        ('forward', forward_time),
+        ('turn',  turn_time),
+        
+    ]
+    
     running = True    
     
     while running:
          # dt is obtained with clock.tick(FPS) / 1000 to otain the real time.
          # This makes the simulation independent of frame rate and ensures consistent physics 
         dt = clock.tick(FPS) / 1000 #To have real time of simulation
+        
+        #Time
+        time_elapsed += dt 
+        
+        
+        mode, time_goal = trajectory_vals[index]
         
         #Get INputs
         keys = pygame.key.get_pressed()
@@ -106,7 +134,32 @@ def main():
             phi_left = 0
             phi_right = 0
             
+        
+        #Square trajectory
+        if mode == 'forward':
+            phi_left = 23.5
+            phi_right = 23.5
+        elif mode == 'turn':
+            phi_left = -23.5
+            phi_right = 23.5
+        print(index)    
+        
+        if time_elapsed >= time_goal:
+            print('SIUUUUUUUUUUUUUUUUUU')
+            index += 1
+            time_elapsed = 0
             
+            if index >= len(trajectory_vals):
+                continue    
+        print(f'Time elapsed: {time_elapsed}')
+        """
+        if time_elapsed <= time_goal:
+            phi_left = 23.5
+            phi_right = 23.5
+         """   
+       
+        
+                
         #PROCCESING
         #points.append((robot_pixel_x, robot_pixel_y)) #Past points        
         
@@ -138,6 +191,7 @@ def main():
         
         #Rotate robot
         rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
+        
         #Give position to robot with center
         robot_rect = rotated_robot.get_rect(center = (robot_pixel_x, robot_pixel_y))
         

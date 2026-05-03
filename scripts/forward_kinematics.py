@@ -35,70 +35,97 @@ def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
         
     print(f'Linear Velocity: {vel}')
     print(f'Omega: {omega}')
-    print(f'Theta: {theta}')
+    print(f'Theta: {-math.degrees(theta)}')
     #Integrate position 
     x += x_dot * dt
     y += y_dot * dt
     theta += omega * dt
     print(f'x: {x}, y: {y}')
     return x, y, theta
-        
+
+
+def angle_diff(a, b):
+    # Computes the smallest angular difference between two angles (a and b)
+    # taking into account the circular nature of angles (wrap-around at 2π).
+    # So this expression normalizes the difference to the range [-π, π],
+    # ensuring we always get the shortest distance between the two angles.
+    difference = a - b + math.pi 
+    wrap_norm = difference % (2 * math.pi) - math.pi 
+    return abs(wrap_norm)      
 
 #Main function
 def main():
     PIXELS_PER_METER = 100
     #dt = 0.01 #The simulation moves in steps of 0.01 s (100Hz) 
     
-    #Robot Configuration
+    #Robot Inital State
     robot_x = 0.1 #meters (10 cm)
     robot_y = 1 # meters
     theta = 0
+    
+    #Robot Geometry
     robot_width = 20
     robot_height = 20
     robot_surface = pygame.Surface((robot_width, robot_height), pygame.SRCALPHA)
     robot_surface.fill((255, 30, 70))
+    pygame.draw.line( #Line to show robot front
+            robot_surface,
+            (0, 0, 0),
+            (robot_width//2, robot_height//2),
+            (robot_width, robot_height//2),
+            2
+        )
     
+    #Scale to pixels
     robot_pixel_x = robot_x * PIXELS_PER_METER
     robot_pixel_y = robot_y * PIXELS_PER_METER
     robot_rect = robot_surface.get_rect(center=(robot_pixel_x, robot_pixel_y))
     
-    points = []
+    points = [(robot_pixel_x, robot_pixel_y)]
     
-    running = True
-    
-    
+    running = True    
     
     while running:
          # dt is obtained with clock.tick(FPS) / 1000 to otain the real time.
-         # This make that the simulation don´t depend of the FPS fixed, otherwise in real time 
+         # This makes the simulation independent of frame rate and ensures consistent physics 
         dt = clock.tick(FPS) / 1000 #To have real time of simulation
         
         #Get INputs
         keys = pygame.key.get_pressed()
         if keys[pygame.K_RIGHT]: #Rotate in place
-            phi_left = -31
-            phi_right = 31
+            phi_left = -23.5
+            phi_right = 23.5
             print('-'*50)
         elif keys[pygame.K_UP]: #Mover forward
-            phi_left = 31
-            phi_right = 31
+            phi_left = 23.5
+            phi_right = 23.5
         elif keys[pygame.K_DOWN]: #Mover backward
-            phi_left = -31
-            phi_right = -31
+            phi_left = -23.5
+            phi_right = -23.5
         else: 
             phi_left = 0
             phi_right = 0
             
             
-        #Processing
-        points.append((robot_pixel_x, robot_pixel_y)) #Past points        
+        #PROCCESING
+        #points.append((robot_pixel_x, robot_pixel_y)) #Past points        
+        
+        #Convert pixel to meters
         current_x = robot_pixel_x / PIXELS_PER_METER
         current_y = robot_pixel_y / PIXELS_PER_METER
+        
+        #Update kinematics
         x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
+        
+        #Convert meters to pixels
         robot_pixel_x = x * PIXELS_PER_METER
         robot_pixel_y = y * PIXELS_PER_METER
-        points.append((robot_pixel_x, robot_pixel_y)) #new points
                     
+        # Store trajectory (only if moved enough)
+        points.append((robot_pixel_x, robot_pixel_y)) #new points
+        if len(points) > 1000:
+            points.pop(0)           
+        
         #Rotate robot
         rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
         #Give position to robot with center
@@ -114,17 +141,10 @@ def main():
     
         
         
-        #Render Elements
+        #RENDER ELEMENTS
         window.fill((255, 255, 255)) #Erase window
         #pygame.draw.rect(window, (255, 30, 70), robot) #Draw robot
         window.blit(rotated_robot, robot_rect)
-        pygame.draw.line(
-            robot_surface,
-            (0, 0, 0),
-            (robot_width//2, robot_height//2),
-            (robot_width, robot_height//2),
-            2
-        )
         
         #Draw Path line
         pygame.draw.lines(window, color=(159,156,155), 

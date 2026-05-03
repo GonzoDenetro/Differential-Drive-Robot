@@ -50,18 +50,19 @@ def main():
     #dt = 0.01 #The simulation moves in steps of 0.01 s (100Hz) 
     
     #Robot Configuration
-    robot_x = 0.1 #meters (1 meters)
+    robot_x = 0.1 #meters (10 cm)
     robot_y = 1 # meters
+    theta = 0
     robot_width = 20
     robot_height = 20
     robot_surface = pygame.Surface((robot_width, robot_height), pygame.SRCALPHA)
     robot_surface.fill((255, 30, 70))
-    theta = 0
     
     robot_pixel_x = robot_x * PIXELS_PER_METER
     robot_pixel_y = robot_y * PIXELS_PER_METER
     robot_rect = robot_surface.get_rect(center=(robot_pixel_x, robot_pixel_y))
     
+    points = []
     
     running = True
     
@@ -74,27 +75,33 @@ def main():
         
         #Get INputs
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT]: #Rotate in place
             phi_left = -31
             phi_right = 31
             print('-'*50)
-        elif keys[pygame.K_UP]:
+        elif keys[pygame.K_UP]: #Mover forward
             phi_left = 31
             phi_right = 31
+        elif keys[pygame.K_DOWN]: #Mover backward
+            phi_left = -31
+            phi_right = -31
         else: 
             phi_left = 0
             phi_right = 0
             
             
-        #Processing        
+        #Processing
+        points.append((robot_pixel_x, robot_pixel_y)) #Past points        
         current_x = robot_pixel_x / PIXELS_PER_METER
         current_y = robot_pixel_y / PIXELS_PER_METER
         x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
         robot_pixel_x = x * PIXELS_PER_METER
         robot_pixel_y = y * PIXELS_PER_METER
+        points.append((robot_pixel_x, robot_pixel_y)) #new points
                     
         #Rotate robot
         rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
+        #Give position to robot with center
         robot_rect = rotated_robot.get_rect(center = (robot_pixel_x, robot_pixel_y))
         
         
@@ -118,6 +125,11 @@ def main():
             (robot_width, robot_height//2),
             2
         )
+        
+        #Draw Path line
+        pygame.draw.lines(window, color=(159,156,155), 
+                         closed=False,
+                         points=points, width=1)
         
         pygame.display.update()
         #clock.tick(FPS)

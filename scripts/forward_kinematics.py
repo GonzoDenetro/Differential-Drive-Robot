@@ -26,15 +26,20 @@ def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
     
     vel = ((phi_l*radius)+(phi_r*radius)) / 2 # m/s
     omega = (radius*(-phi_l + phi_r)) / L
-    theta += omega * dt  
-    x_dot = vel * math.cos(theta)
-    y_dot = vel * math.sin(theta)
+    
+    #Use the prevous theta
+    theta_old = theta
+      
+    x_dot = vel * math.cos(theta_old)
+    y_dot = vel * math.sin(theta_old)
         
     print(f'Linear Velocity: {vel}')
     print(f'Omega: {omega}')
+    print(f'Theta: {theta}')
     #Integrate position 
     x += x_dot * dt
     y += y_dot * dt
+    theta += omega * dt
     print(f'x: {x}, y: {y}')
     return x, y, theta
         
@@ -42,10 +47,10 @@ def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
 #Main function
 def main():
     PIXELS_PER_METER = 100
-    dt = 0.01 #The simulation moves in steps of 0.01 s (100Hz) 
+    #dt = 0.01 #The simulation moves in steps of 0.01 s (100Hz) 
     
     #Robot Configuration
-    robot_x = 1 #meters (1 meters)
+    robot_x = 0.1 #meters (1 meters)
     robot_y = 1 # meters
     robot_width = 20
     robot_height = 20
@@ -57,47 +62,49 @@ def main():
     robot_pixel_y = robot_y * PIXELS_PER_METER
     robot_rect = robot_surface.get_rect(center=(robot_pixel_x, robot_pixel_y))
     
-    #Robot Wheel Velocities
-    v_left = []
-    v_right = []
     
     running = True
     
     
     
     while running:
-        #Get INputs
+         # dt is obtained with clock.tick(FPS) / 1000 to otain the real time.
+         # This make that the simulation don´t depend of the FPS fixed, otherwise in real time 
+        dt = clock.tick(FPS) / 1000 #To have real time of simulation
         
-        for event in pygame.event.get():
+        #Get INputs
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RIGHT]:
+            phi_left = -31
+            phi_right = 31
+            print('-'*50)
+        elif keys[pygame.K_UP]:
+            phi_left = 31
+            phi_right = 31
+        else: 
+            phi_left = 0
+            phi_right = 0
             
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_RIGHT]:
-                phi_left = -31
-                phi_right = 31
-                print('-'*50)
-            elif keys[pygame.K_UP]:
-                phi_left = 31
-                phi_right = 31
-            else: 
-                phi_left = 0
-                phi_right = 0
             
-            current_x = robot_pixel_x / PIXELS_PER_METER
-            current_y = robot_pixel_y / PIXELS_PER_METER
-            x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
-            robot_pixel_x = x * PIXELS_PER_METER
-            robot_pixel_y = y * PIXELS_PER_METER
+        #Processing        
+        current_x = robot_pixel_x / PIXELS_PER_METER
+        current_y = robot_pixel_y / PIXELS_PER_METER
+        x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
+        robot_pixel_x = x * PIXELS_PER_METER
+        robot_pixel_y = y * PIXELS_PER_METER
                     
-            #Rotate robot
-            rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
-            robot_rect = rotated_robot.get_rect(center = (robot_pixel_x, robot_pixel_y))
-            
-            
+        #Rotate robot
+        rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
+        robot_rect = rotated_robot.get_rect(center = (robot_pixel_x, robot_pixel_y))
+        
+        
+        #Exit
+        for event in pygame.event.get():            
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
         
-        #Processing
+    
         
         
         #Render Elements
@@ -113,7 +120,7 @@ def main():
         )
         
         pygame.display.update()
-        clock.tick(FPS)
+        #clock.tick(FPS)
         
     
 

@@ -36,7 +36,7 @@ def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
     print(f'Linear Velocity: {vel}')
     print(f'Omega: {omega}')
     print(f'Theta: {-math.degrees(theta)}')
-    #Integrate position 
+    #Integrate position (Euler)
     x += x_dot * dt
     y += y_dot * dt
     theta += omega * dt
@@ -89,9 +89,10 @@ def main():
     
     
     #Square trajectory
-    omega = (0.05*(-23.5 + 23.5)) / 0.2
+    draw_square = False
+    omega = (0.05*(23.5 + 23.5)) / 0.2
     forward_time = 2.0
-    turn_time = 0.1213#(math.pi/2) / 15.5
+    turn_time = 0.1213#(math.pi/2) / 11.75
     index = 0
     trajectory_vals = [
         ('forward', forward_time),
@@ -113,10 +114,10 @@ def main():
         dt = clock.tick(FPS) / 1000 #To have real time of simulation
         
         #Time
-        time_elapsed += dt 
+        #time_elapsed += dt 
         
         
-        mode, time_goal = trajectory_vals[index]
+        #mode, time_goal = trajectory_vals[index]
         
         #Get INputs
         keys = pygame.key.get_pressed()
@@ -130,33 +131,37 @@ def main():
         elif keys[pygame.K_DOWN]: #Mover backward
             phi_left = -23.5
             phi_right = -23.5
+        elif keys[pygame.K_s]:
+            draw_square = True
+               
         else: 
             phi_left = 0
             phi_right = 0
             
         
         #Square trajectory
-        if mode == 'forward':
-            phi_left = 23.5
-            phi_right = 23.5
-        elif mode == 'turn':
-            phi_left = -23.5
-            phi_right = 23.5
-        print(index)    
-        
-        if time_elapsed >= time_goal:
-            print('SIUUUUUUUUUUUUUUUUUU')
-            index += 1
-            time_elapsed = 0
+        if draw_square:
+            #Time
+            time_elapsed += dt     
             
-            if index >= len(trajectory_vals):
-                continue    
-        print(f'Time elapsed: {time_elapsed}')
-        """
-        if time_elapsed <= time_goal:
-            phi_left = 23.5
-            phi_right = 23.5
-         """   
+            mode, time_goal = trajectory_vals[index]
+            
+            #Square trajectory
+            if mode == 'forward':
+                phi_left = 23.5
+                phi_right = 23.5
+            elif mode == 'turn':
+                phi_left = -23.5
+                phi_right = 23.5
+            
+            if time_elapsed >= time_goal:
+                index += 1
+                time_elapsed = 0
+                
+                if index >= len(trajectory_vals):
+                    draw_square = False
+                    index = 0    
+            print(f'Time elapsed: {time_elapsed}')   
        
         
                 
@@ -176,8 +181,8 @@ def main():
                     
         # Store trajectory (only if moved enough)
         points.append((robot_pixel_x, robot_pixel_y)) #new points
-        if len(points) > 1000:
-            points.pop(0)           
+        #if len(points) > 1000:
+         #   points.pop(0)           
         
         #Fixed Angle
         theta = theta % (2 * math.pi) # Mantain the angle in the range of 0 an 2pi

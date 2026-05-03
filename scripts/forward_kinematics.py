@@ -126,6 +126,16 @@ def main():
         if len(points) > 1000:
             points.pop(0)           
         
+        #Fixed Angle
+        theta = theta % (2 * math.pi) # Mantain the angle in the range of 0 an 2pi
+        snap_angles = [0, math.pi/2, math.pi, 3*math.pi/2]
+        tolerance = 0.0872 #radianes
+        
+        for angle in snap_angles:
+            if angle_diff(theta, angle) < tolerance:
+                theta = angle
+                break
+        
         #Rotate robot
         rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
         #Give position to robot with center

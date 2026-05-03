@@ -57,7 +57,8 @@ def main():
     robot_y = 1 # meters
     robot_width = 20
     robot_height = 20
-    robot = pygame.Rect(robot_x*PIXELS_PER_METER, robot_y*PIXELS_PER_METER, robot_width, robot_height)
+    robot_surface = pygame.Surface((robot_width, robot_height), pygame.SRCALPHA)
+    robot_surface.fill((255, 30, 70))
     theta = 0
     
     #Robot Wheel Velocities
@@ -99,7 +100,8 @@ def main():
         
         #Render Elements
         window.fill((255, 255, 255)) #Erase window
-        pygame.draw.rect(window, (255, 30, 70), robot) #Draw robot
+        #pygame.draw.rect(window, (255, 30, 70), robot) #Draw robot
+        window.blit(robot_surface, (robot_x, robot_y))
         
         pygame.display.update()
         clock.tick(FPS)

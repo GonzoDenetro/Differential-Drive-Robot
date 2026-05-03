@@ -36,16 +36,8 @@ def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
     x += x_dot * dt
     y += y_dot * dt
     print(f'x: {x}, y: {y}')
-    return x, y
+    return x, y, theta
         
-
-def udpdate(robot):
-    window.fill((255, 255, 255)) #Erase window
-    pygame.draw.rect(window, (255, 30, 70), robot) #Draw robot
-        
-    pygame.display.update()
-    clock.tick(FPS)
-
 
 #Main function
 def main():
@@ -60,6 +52,10 @@ def main():
     robot_surface = pygame.Surface((robot_width, robot_height), pygame.SRCALPHA)
     robot_surface.fill((255, 30, 70))
     theta = 0
+    
+    robot_pixel_x = robot_x * PIXELS_PER_METER
+    robot_pixel_y = robot_y * PIXELS_PER_METER
+    robot_rect = robot_surface.get_rect(center=(robot_pixel_x, robot_pixel_y))
     
     #Robot Wheel Velocities
     v_left = []
@@ -76,19 +72,25 @@ def main():
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
-                print('Cuadrado')
-                #angular_vel_left = [31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4, 31.4]
-                #angular_vel_right = [31.4, 31.4, 31.4, 31.4, -31.4, 31.4, 31.4, 31.4, 31.4]
-                angular_vel_left = [20]
-                angular_vel_right = [31]
-                for phi_left, phi_right in zip(angular_vel_left, angular_vel_right):
-                    current_x = robot.x / PIXELS_PER_METER
-                    current_y = robot.y / PIXELS_PER_METER
-                    x, y = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
-                    robot.x = x * PIXELS_PER_METER
-                    robot.y = y * PIXELS_PER_METER
-                    udpdate(robot)
-                    print('-'*50)
+                phi_left = -31
+                phi_right = 31
+                print('-'*50)
+            elif keys[pygame.K_UP]:
+                phi_left = 31
+                phi_right = 31
+            else: 
+                phi_left = 0
+                phi_right = 0
+            
+            current_x = robot_pixel_x / PIXELS_PER_METER
+            current_y = robot_pixel_y / PIXELS_PER_METER
+            x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
+            robot_pixel_x = x * PIXELS_PER_METER
+            robot_pixel_y = y * PIXELS_PER_METER
+                    
+            #Rotate robot
+            rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
+            robot_rect = rotated_robot.get_rect(center = (robot_pixel_x, robot_pixel_y))
             
             
             if event.type == QUIT:
@@ -101,7 +103,14 @@ def main():
         #Render Elements
         window.fill((255, 255, 255)) #Erase window
         #pygame.draw.rect(window, (255, 30, 70), robot) #Draw robot
-        window.blit(robot_surface, (robot_x, robot_y))
+        window.blit(rotated_robot, robot_rect)
+        pygame.draw.line(
+            robot_surface,
+            (0, 0, 0),
+            (robot_width//2, robot_height//2),
+            (robot_width, robot_height//2),
+            2
+        )
         
         pygame.display.update()
         clock.tick(FPS)

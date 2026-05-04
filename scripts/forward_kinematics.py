@@ -92,7 +92,7 @@ def main():
     draw_square = False
     omega = (0.05*(23.5 + 23.5)) / 0.2
     forward_time = 2.0
-    turn_time = 0.1213#(math.pi/2) / 11.75
+    turn_time = 0.1213 #(math.pi/2) / 11.75
     index = 0
     trajectory_vals = [
         ('forward', forward_time),
@@ -153,6 +153,7 @@ def main():
             elif mode == 'turn':
                 phi_left = -23.5
                 phi_right = 23.5
+
             
             if time_elapsed >= time_goal:
                 index += 1

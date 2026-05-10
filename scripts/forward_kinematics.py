@@ -44,14 +44,20 @@ def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
     return x, y, theta
 
 
-def angle_diff(a, b):
-    # Computes the smallest angular difference between two angles (a and b)
-    # taking into account the circular nature of angles (wrap-around at 2π).
+def nomalize_angle(angle):
+    #Keep angle between 0 and 2pi, is equivalent to 0° and 360°
+    return angle % (2 * math.pi)
+
+def angle_diff(target, current):
+    # Computes the smallest angular error between two angles
+    # taking into account the circular nature of angles, angles are cyclecal, a simple difference is not enough.
     # So this expression normalizes the difference to the range [-π, π],
-    # ensuring we always get the shortest distance between the two angles.
-    difference = a - b + math.pi 
-    wrap_norm = difference % (2 * math.pi) - math.pi 
-    return abs(wrap_norm)      
+    #This:
+    #  - converts the difference into a circular value
+    #  - prevents jumps between 0 and 2π
+    #  - ensures stability in orientation control.    
+    return (target - current + math.pi) % (2*math.pi) - math.pi
+
 
 #Main function
 def main():
@@ -90,21 +96,16 @@ def main():
     
     #Square trajectory
     draw_square = False
-    omega = (0.05*(23.5 + 23.5)) / 0.2
-    forward_time = 2.0
-    turn_time = 0.1213 #(math.pi/2) / 11.75
-    index = 0
-    trajectory_vals = [
-        ('forward', forward_time),
-        ('turn',  turn_time),
-        ('forward', forward_time),
-        ('turn',  turn_time),
-        ('forward', forward_time),
-        ('turn',  turn_time),
-        ('forward', forward_time),
-        ('turn',  turn_time),
-        
-    ]
+    square_state = 'forward'
+    square_side = 0
+    side_distance = 1.0 #Meters
+    target_theta = 0
+    heading_ref = 0
+    start_x = robot_x
+    start_y = robot_y
+    
+    #Circle Trajectory
+    draw_circle = False
     
     running = True    
     
@@ -113,87 +114,121 @@ def main():
          # This makes the simulation independent of frame rate and ensures consistent physics 
         dt = clock.tick(FPS) / 1000 #To have real time of simulation
         
-        #Time
-        #time_elapsed += dt 
+        #Init velocities
+        phi_left = 0
+        phi_right = 0
         
-        
-        #mode, time_goal = trajectory_vals[index]
-        
-        #Get INputs
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_RIGHT]: #Rotate in place
-            phi_left = -23.5
-            phi_right = 23.5
-            print('-'*50)
-        elif keys[pygame.K_UP]: #Mover forward
-            phi_left = 23.5
-            phi_right = 23.5
-        elif keys[pygame.K_DOWN]: #Mover backward
-            phi_left = -23.5
-            phi_right = -23.5
-        elif keys[pygame.K_s]:
-            draw_square = True
-               
-        else: 
-            phi_left = 0
-            phi_right = 0
-            
-        
-        #Square trajectory
-        if draw_square:
-            #Time
-            time_elapsed += dt     
-            
-            mode, time_goal = trajectory_vals[index]
-            
-            #Square trajectory
-            if mode == 'forward':
-                phi_left = 23.5
-                phi_right = 23.5
-            elif mode == 'turn':
-                phi_left = -23.5
-                phi_right = 23.5
-
-            
-            if time_elapsed >= time_goal:
-                index += 1
-                time_elapsed = 0
-                
-                if index >= len(trajectory_vals):
-                    draw_square = False
-                    index = 0    
-            print(f'Time elapsed: {time_elapsed}')   
-       
-        
-                
-        #PROCCESING
-        #points.append((robot_pixel_x, robot_pixel_y)) #Past points        
         
         #Convert pixel to meters
         current_x = robot_pixel_x / PIXELS_PER_METER
         current_y = robot_pixel_y / PIXELS_PER_METER
+                
+        #Get INputs
+        keys = pygame.key.get_pressed()
         
+        if draw_square == False and draw_circle == False:
+            if keys[pygame.K_RIGHT]: #Rotate in place
+                phi_left = -23.5
+                phi_right = 23.5
+                print('-'*50)
+            elif keys[pygame.K_UP]: #Mover forward
+                phi_left = 23.5
+                phi_right = 23.5
+            elif keys[pygame.K_DOWN]: #Mover backward
+                phi_left = -23.5
+                phi_right = -23.5
+            elif keys[pygame.K_s]:
+                draw_square = True
+                start_x = current_x
+                start_y = current_y
+                square_state = 'forward'
+                square_side = 0
+            
+            elif keys[pygame.K_c]:
+                draw_circle = True
+            else: 
+                phi_left = 0
+                phi_right = 0
+            
+        
+        #Square trajectory
+        if draw_square:  
+            if square_state == 'forward':
+                phi_left = 23.5
+                phi_right = 23.5
+                
+                #Get distance 
+                dx = current_x - start_x
+                dy = current_y - start_y
+                
+                distance = math.sqrt(dx**2 + dy**2)
+                
+                #Check if it reached the distance goal
+                if distance >= side_distance:
+                    square_state = 'turn'
+
+                    #Desire angle 90°
+                    heading_ref = theta
+                    target_theta = nomalize_angle(heading_ref + math.pi/2)
+                
+            elif square_state == 'turn':
+                #Angular error ---> (target - current + π) % (2π) - π
+                error = angle_diff(target_theta, theta)
+
+                #Proportional controller
+                Kp = 15
+                omega_cmd = Kp * error
+                
+                #Rotate
+                phi_left = -omega_cmd
+                phi_right = omega_cmd
+                    
+                if abs(error) < math.radians(2): #2° of tolerance
+                    theta = target_theta
+                    phi_left = 0
+                    phi_right = 0
+                    square_side += 1
+                        
+                    #New reference point
+                    start_x = current_x
+                    start_y = current_y
+                        
+                    square_state = 'forward'
+
+                    if square_side >= 4:
+                        draw_square = False
+                        
+        
+        #Circle Trajectory
+        if draw_circle:
+            # Teh radius of a circle trajectroy is = R = v/w
+            # We set the lineal velocity and the radius to obtain omega
+            v = 0.2
+            R = 1.0
+            omega = v/R
+            
+            phi_right = (v + (omega * 0.2 / 2)) / 0.05
+            phi_left  = (v - (omega * 0.2 / 2)) / 0.05
+            
+            if theta >= 2*math.pi:
+                draw_circle = False
+                
+                
+        #PROCCESING
         #Update kinematics
         x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
         
         #Convert meters to pixels
         robot_pixel_x = x * PIXELS_PER_METER
         robot_pixel_y = y * PIXELS_PER_METER
-                    
+        
+        robot_x = x
+        robot_y = y
+        
         # Store trajectory (only if moved enough)
         points.append((robot_pixel_x, robot_pixel_y)) #new points
         #if len(points) > 1000:
          #   points.pop(0)           
-        
-        #Fixed Angle
-        theta = theta % (2 * math.pi) # Mantain the angle in the range of 0 an 2pi
-        snap_angles = [0, math.pi/2, math.pi, 3*math.pi/2]
-        tolerance = 0.0872 #radianes
-        
-        for angle in snap_angles:
-            if angle_diff(theta, angle) < tolerance:
-                theta = angle
-                break
         
         #Rotate robot
         rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
@@ -207,8 +242,6 @@ def main():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-        
-    
         
         
         #RENDER ELEMENTS

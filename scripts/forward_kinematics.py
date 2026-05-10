@@ -11,19 +11,15 @@ pygame.init()
 #Game Setup
 FPS = 60
 clock = pygame.time.Clock()
-WINDOW_WIDTH = 1000
-WINDOW_HEIGHT = 600
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 500
 
 window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption('Differential Robot - Forward Kinematics')
 
 
 
-def forward_kinematics(phi_l, phi_r, x, y, theta, dt):
-    radius = 0.05 #meters
-    L = 0.2 # Robot Length
-
-    
+def forward_kinematics(phi_l, phi_r, x, y, theta, radius, L, dt):
     vel = ((phi_l*radius)+(phi_r*radius)) / 2 # m/s
     omega = (radius*(-phi_l + phi_r)) / L
     
@@ -65,22 +61,19 @@ def main():
     #dt = 0.01 #The simulation moves in steps of 0.01 s (100Hz) 
     
     #Robot Inital State
-    robot_x = 0.1 #meters (10 cm)
+    robot_x = 0.5 #meters (10 cm)
     robot_y = 1 # meters
     theta = 0
     
     #Robot Geometry
-    robot_width = 20
-    robot_height = 20
-    robot_surface = pygame.Surface((robot_width, robot_height), pygame.SRCALPHA)
-    robot_surface.fill((255, 30, 70))
-    pygame.draw.line( #Line to show robot front
-            robot_surface,
-            (0, 0, 0),
-            (robot_width//2, robot_height//2),
-            (robot_width, robot_height//2),
-            2
-        )
+    radius = 0.06 #meters
+    L = 0.5 # Robot Length
+    robot_width = L * 100
+    robot_height = L * 100
+    robot_img = pygame.image.load('../Assets/DiffRobot.png').convert_alpha()
+    robot_surface = pygame.transform.scale(robot_img, (robot_width, robot_height))
+    #robot_surface = pygame.Surface((robot_width, robot_height), pygame.SRCALPHA)
+    #robot_surface.fill((255, 30, 70))
     
     #Scale to pixels
     robot_pixel_x = robot_x * PIXELS_PER_METER
@@ -89,11 +82,7 @@ def main():
     
     points = [(robot_pixel_x, robot_pixel_y)]
     
-    #Time for square simulation
-    time_elapsed = 0
-    #time_goal = 2 # 2 seconds
-    
-    
+
     #Square trajectory
     draw_square = False
     square_state = 'forward'
@@ -130,13 +119,15 @@ def main():
             if keys[pygame.K_RIGHT]: #Rotate in place
                 phi_left = -23.5
                 phi_right = 23.5
-                print('-'*50)
+                
             elif keys[pygame.K_UP]: #Mover forward
                 phi_left = 23.5
                 phi_right = 23.5
+                
             elif keys[pygame.K_DOWN]: #Mover backward
                 phi_left = -23.5
                 phi_right = -23.5
+                
             elif keys[pygame.K_s]:
                 draw_square = True
                 start_x = current_x
@@ -204,7 +195,7 @@ def main():
             # Teh radius of a circle trajectroy is = R = v/w
             # We set the lineal velocity and the radius to obtain omega
             v = 0.2
-            R = 1.0
+            R = 0.6
             omega = v/R
             
             phi_right = (v + (omega * 0.2 / 2)) / 0.05
@@ -213,10 +204,9 @@ def main():
             if theta >= 2*math.pi:
                 draw_circle = False
                 
-                
         #PROCCESING
         #Update kinematics
-        x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, dt)
+        x, y, theta = forward_kinematics(phi_left, phi_right, current_x, current_y, theta, radius, L, dt)
         
         #Convert meters to pixels
         robot_pixel_x = x * PIXELS_PER_METER
@@ -231,7 +221,7 @@ def main():
          #   points.pop(0)           
         
         #Rotate robot
-        rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta))
+        rotated_robot = pygame.transform.rotate(robot_surface, -math.degrees(theta) - 90) #The -90° Is to adjust the image
         
         #Give position to robot with center
         robot_rect = rotated_robot.get_rect(center = (robot_pixel_x, robot_pixel_y))
@@ -248,7 +238,14 @@ def main():
         window.fill((255, 255, 255)) #Erase window
         #pygame.draw.rect(window, (255, 30, 70), robot) #Draw robot
         window.blit(rotated_robot, robot_rect)
-        
+        pygame.draw.line( #Line to show robot front
+            robot_surface,
+            (0, 0, 0),
+            (robot_width//2, robot_height//2),
+            (robot_width//2, 0),
+            2
+        ) 
+            
         #Draw Path line
         pygame.draw.lines(window, color=(159,156,155), 
                          closed=False,

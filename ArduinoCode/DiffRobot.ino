@@ -11,7 +11,6 @@ int encoderL = 2;
 int N = 20; 
 
 //MOTOR PINS
- 
 // Motor Left
 int pwmL = 6;
 int dir1L = 8;
@@ -22,7 +21,8 @@ int pwmR = 11;
 int dir1R = 9;
 int dir2R = 10;
 
-int stby = 12;
+//int stby = 12;
+
 
 //ROBOT PARAMETERS
 float L = 0.125; //Meters
@@ -71,8 +71,8 @@ void setup() {
   pinMode(dir1L, OUTPUT);
   pinMode(dir2L, OUTPUT);
 
-  pinMode(stby, OUTPUT);
-  digitalWrite(stby, HIGH);
+  //pinMode(stby, OUTPUT);
+  //digitalWrite(stby, HIGH);
    
   //Serial Communication
   Serial.begin(9600);
@@ -97,12 +97,39 @@ void moveForward(){
     digitalWrite(dir1L, LOW);
     
     //Right Motor
-    analogWrite(pwmR, 200);
+    analogWrite(pwmR, 225);
     digitalWrite(dir1R, HIGH);
     digitalWrite(dir2R, LOW);
 }
 
+
+void rotateLeft(){
+  // Left Motor backward
+  analogWrite(pwmL, 200);
+  digitalWrite(dir1L, HIGH);
+  digitalWrite(dir2L, LOW);
+
+  // Right Motor forward
+  analogWrite(pwmR, 225);
+  digitalWrite(dir1R, HIGH);
+  digitalWrite(dir2R, LOW);
+}
+
+void stopMotors(){
+  // Left Motor
+  analogWrite(pwmL, 0);
+
+  // Right Motor 
+  analogWrite(pwmR, 0);
+}
+
 void loop() {
   Serial.println(ticksL);
+
   moveForward();
+  delay(2000);
+  stopMotors();
+  delay(1000);
+  rotateLeft();
+  delay(1000);
 }

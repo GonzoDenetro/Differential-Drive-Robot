@@ -76,6 +76,21 @@ void setup() {
    
   //Serial Communication
   Serial.begin(9600);
+
+  //Time
+  prevTime = millis();
+}
+
+
+void loop() {
+  Serial.println(ticksL);
+
+  moveForward();
+  delay(2000);
+  stopMotors();
+  delay(1000);
+  rotateLeft();
+  delay(1000);
 }
 
 
@@ -88,6 +103,25 @@ void leftEncoderCallback() {
   ticksL += 1;
 }
 
+
+float angleDiff(float target, float current){
+  return atan2(
+    sin(target - current),
+    cos(target - current)
+    );
+}
+
+
+float normalizeAngle(float angle){
+  while(angle >= 2*PI){
+    angle -= 2*PI
+  }
+  while(angle < 0){
+    angle += 2*PI
+  }
+
+  return angle
+}
 
 void moveForward(){
     
@@ -121,15 +155,4 @@ void stopMotors(){
 
   // Right Motor 
   analogWrite(pwmR, 0);
-}
-
-void loop() {
-  Serial.println(ticksL);
-
-  moveForward();
-  delay(2000);
-  stopMotors();
-  delay(1000);
-  rotateLeft();
-  delay(1000);
 }

@@ -11,7 +11,18 @@ int encoderL = 2;
 int N = 20; 
 
 //MOTOR PINS
+ 
+// Motor Left
+int pwmL = 6;
+int dir1L = 8;
+int dir2L = 7;
+ 
+// Motor Right
+int pwmR = 11;
+int dir1R = 9;
+int dir2R = 10;
 
+int stby = 12;
 
 //ROBOT PARAMETERS
 float L = 0.125; //Meters
@@ -46,9 +57,23 @@ int sideLength = 0.5; // Meters
 void setup() {
   // set the encoder pin
   pinMode(encoderL, INPUT);
+  pinMode(encoderR, INPUT);
   //Create Interruption
   attachInterrupt(digitalPinToInterrupt(encoderR), rightEncoderCallback, FALLING);
   attachInterrupt(digitalPinToInterrupt(encoderL), leftEncoderCallback, FALLING);
+  
+  // Motor pins
+  pinMode(pwmR, OUTPUT);
+  pinMode(dir1R, OUTPUT);
+  pinMode(dir2R, OUTPUT);
+
+  pinMode(pwmL, OUTPUT);
+  pinMode(dir1L, OUTPUT);
+  pinMode(dir2L, OUTPUT);
+
+  pinMode(stby, OUTPUT);
+  digitalWrite(stby, HIGH);
+   
   //Serial Communication
   Serial.begin(9600);
 }
@@ -63,7 +88,21 @@ void leftEncoderCallback() {
   ticksL += 1;
 }
 
+
+void moveForward(){
+    
+    //Left Motor
+    analogWrite(pwmL, 200);
+    digitalWrite(dir2L, HIGH);
+    digitalWrite(dir1L, LOW);
+    
+    //Right Motor
+    analogWrite(pwmR, 200);
+    digitalWrite(dir1R, HIGH);
+    digitalWrite(dir2R, LOW);
+}
+
 void loop() {
   Serial.println(ticksL);
-  
+  moveForward();
 }

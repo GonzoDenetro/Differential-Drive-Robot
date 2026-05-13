@@ -10,6 +10,9 @@ int encoderL = 2;
 //Ticks in disk
 int N = 20; 
 
+long prevTicksR = 0;
+long prevTicksL = 0;
+
 //MOTOR PINS
 // Motor Left
 int pwmL = 6;
@@ -83,14 +86,31 @@ void setup() {
 
 
 void loop() {
-  Serial.println(ticksL);
+  // GET DT
+  unsigned long currentTime = millis();
+  float dt = currentTime - prevTime;
+  prevTime = currentTime;
 
-  moveForward();
-  delay(2000);
-  stopMotors();
-  delay(1000);
-  rotateLeft();
-  delay(1000);
+  //WHEEL VELOCITIES
+  long deltaR = ticksR - prevTicksR;
+  long deltaL = ticksL - prevTicksL;
+
+  omegaR = (deltaR * 2*PI) / (N * dt);
+  omegaL = (deltaL * 2*PI) / (N * dt);
+
+  // FORWARD KINEMATICS
+  float velocity = (radius *(omegaL + omegaR)) / 2.0;
+  float omega = (radius * (omegaL - omegaR)) / L;
+
+  float x_dot = velocity * cos(theta);
+  float y_dot = velocity * sin(theta);
+
+  //Euler Integration
+  x += x_dot * dt;
+  y += y_dot * dt;
+  theta += omega * dt;
+
+  theta = normalizeAngle(theta); //Noramlize angle to be between 0 - 2pi
 }
 
 
@@ -114,17 +134,16 @@ float angleDiff(float target, float current){
 
 float normalizeAngle(float angle){
   while(angle >= 2*PI){
-    angle -= 2*PI
+    angle -= 2*PI;
   }
   while(angle < 0){
-    angle += 2*PI
+    angle += 2*PI;
   }
 
-  return angle
+  return angle;
 }
 
-void moveForward(){
-    
+void moveForward(){   
     //Left Motor
     analogWrite(pwmL, 200);
     digitalWrite(dir2L, HIGH);

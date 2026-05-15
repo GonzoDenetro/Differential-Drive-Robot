@@ -25,9 +25,9 @@ This project implements:
 
 The total linear velocity of the robot is given by the average of the linear velocities of both wheels:
 
-\[
+$$
 V = \frac{V_r + V_l}{2}
-\]
+$$
 
 Where:
 

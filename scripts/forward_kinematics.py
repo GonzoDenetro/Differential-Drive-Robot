@@ -249,7 +249,7 @@ def main():
         #Draw Path line
         pygame.draw.lines(window, color=(159,156,155), 
                          closed=False,
-                         points=points, width=1)
+                         points=points, width=2)
         
         pygame.display.update()
         #clock.tick(FPS)

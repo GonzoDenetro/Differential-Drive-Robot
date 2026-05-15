@@ -43,13 +43,13 @@ The linear velocity of each wheel depends on:
 - the wheel radius
 - its angular velocity
 
-\[
+$$
 V_r = r \omega_r
-\]
+$$
 
-\[
+$$
 V_l = r \omega_l
-\]
+$$
 
 Where:
 
@@ -63,23 +63,23 @@ Where:
 
 The robot velocity can be decomposed into the \(x\) and \(y\) axes:
 
-\[
+$$
 \dot{x} = V \cos(\theta)
-\]
+$$
 
-\[
+$$
 \dot{y} = V \sin(\theta)
-\]
+$$
 
 Substituting \(V\):
 
-\[
+$$
 \dot{x} = \left(\frac{r(\omega_r + \omega_l)}{2}\right)\cos(\theta)
-\]
+$$
 
-\[
+$$
 \dot{y} = \left(\frac{r(\omega_r + \omega_l)}{2}\right)\sin(\theta)
-\]
+$$
 
 ---
 
@@ -91,15 +91,15 @@ When the wheels rotate at different velocities, the robot rotates around a point
 
 The angular velocity of the robot is given by:
 
-\[
+$$
 \omega = \frac{V_r - V_l}{L}
-\]
+$$
 
 Substituting the linear wheel velocities:
 
-\[
+$$
 \omega = \frac{r(\omega_r - \omega_l)}{L}
-\]
+$$
 
 Where:
 
@@ -111,17 +111,17 @@ Where:
 
 The complete kinematic model of the differential drive robot is:
 
-\[
+$$
 \dot{x} = \left(\frac{r(\omega_r + \omega_l)}{2}\right)\cos(\theta)
-\]
+$$
 
-\[
+$$
 \dot{y} = \left(\frac{r(\omega_r + \omega_l)}{2}\right)\sin(\theta)
-\]
+$$
 
-\[
+$$
 \dot{\theta} = \frac{r(\omega_r - \omega_l)}{L}
-\]
+$$
 
 ---
 
@@ -143,9 +143,9 @@ This project uses Euler numerical integration because the simulation works in di
 
 The general Euler integration formula is:
 
-\[
+$$
 y_{n+1} = y_n + h f(t_n, y_n)
-\]
+$$
 
 Where:
 
@@ -154,17 +154,17 @@ Where:
 
 Applying Euler integration to the differential drive robot:
 
-\[
+$$
 x_{k+1} = x_k + \dot{x} \Delta t
-\]
+$$
 
-\[
+$$
 y_{k+1} = y_k + \dot{y} \Delta t
-\]
+$$
 
-\[
+$$
 \theta_{k+1} = \theta_k + \omega \Delta t
-\]
+$$
 
 ---
 
@@ -226,9 +226,9 @@ omega_cmd = Kp * error
 
 The circular trajectory uses the relation:
 
-\[
+$$
 R = \frac{V}{\omega}
-\]
+$$
 
 Given a desired radius and linear velocity, the required angular velocity is computed.
 
